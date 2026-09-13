@@ -359,14 +359,14 @@
           "num": 26,
           "content": "Which of these animals is an amphibian (lives both on land and in water)?",
           "options": {
-            "A": "Turtle",
+            "A": "Dog",
             "B": "Frog",
-            "C": "Snake",
-            "D": "Crocodile"
+            "C": "Cat",
+            "D": "Cow"
           },
           "trailingContext": "",
           "correct": "B",
-          "why": "Frogs are amphibians — they can live both on land and in water"
+          "why": "Frogs are amphibians — they can live both on land and in water. Dogs, cats, and cows live only on land."
         },
         {
           "num": 27,
