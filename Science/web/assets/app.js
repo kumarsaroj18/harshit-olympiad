@@ -31,16 +31,23 @@ function saveJSON(key, obj) {
   } catch (e) { /* ignore quota / private-mode errors */ }
 }
 
+// Blanks ("___") are swapped for a private-use placeholder before markdown
+// parsing and turned into spans afterwards. Injecting the span HTML before
+// parsing breaks inside code blocks, where marked escapes it into visible text.
+const BLANK_TOKEN = "\uE000";
 function markBlank(text) {
-  return text.replace(/_{2,}/g, '<span class="blank"></span>');
+  return text.replace(/_{2,}/g, BLANK_TOKEN);
+}
+function renderBlanks(html) {
+  return html.split(BLANK_TOKEN).join('<span class="blank"></span>');
 }
 function mdBlock(text) {
   if (!text) return "";
-  return marked.parse(markBlank(text));
+  return renderBlanks(marked.parse(markBlank(text)));
 }
 function mdInline(text) {
   if (!text) return "";
-  return marked.parseInline(markBlank(text));
+  return renderBlanks(marked.parseInline(markBlank(text)));
 }
 
 /* ================= HOME PAGE ================= */
