@@ -41,13 +41,51 @@ function markBlank(text) {
 function renderBlanks(html) {
   return html.split(BLANK_TOKEN).join('<span class="blank"></span>');
 }
+// Clock emoji (🕐–🕧) render as tiny, device-dependent icons, too small to
+// read the hands on. Replace each with a large drawn analogue clock face.
+// U+1F550–1F55B are 1–12 o'clock; U+1F55C–1F567 are half past 1–12.
+const CLOCK_EMOJI = /[\u{1F550}-\u{1F567}]/gu;
+function clockSVG(hour, minute) {
+  const hand = (deg, len) => {
+    const rad = (deg - 90) * Math.PI / 180;
+    return `x2="${(100 + len * Math.cos(rad)).toFixed(1)}" y2="${(100 + len * Math.sin(rad)).toFixed(1)}"`;
+  };
+  let marks = "";
+  for (let i = 0; i < 60; i++) {
+    const rad = (i * 6 - 90) * Math.PI / 180;
+    const inner = i % 5 === 0 ? 80 : 86;
+    marks += `<line x1="${(100 + inner * Math.cos(rad)).toFixed(1)}" y1="${(100 + inner * Math.sin(rad)).toFixed(1)}" ` +
+      `x2="${(100 + 92 * Math.cos(rad)).toFixed(1)}" y2="${(100 + 92 * Math.sin(rad)).toFixed(1)}" ` +
+      `stroke="#2c2a3d" stroke-width="${i % 5 === 0 ? 3 : 1}"/>`;
+  }
+  let nums = "";
+  for (let n = 1; n <= 12; n++) {
+    const rad = (n * 30 - 90) * Math.PI / 180;
+    nums += `<text x="${(100 + 66 * Math.cos(rad)).toFixed(1)}" y="${(100 + 66 * Math.sin(rad)).toFixed(1)}">${n}</text>`;
+  }
+  const hourDeg = (hour % 12) * 30 + minute * 0.5;
+  const label = minute ? `Clock showing half past ${hour}` : `Clock showing ${hour} o'clock`;
+  return `<svg class="clock-face" viewBox="0 0 200 200" role="img" aria-label="${label}">` +
+    `<circle cx="100" cy="100" r="96" fill="#fff" stroke="#2c2a3d" stroke-width="5"/>` +
+    marks +
+    `<g font-family="system-ui, sans-serif" font-size="20" font-weight="700" fill="#2c2a3d" text-anchor="middle" dominant-baseline="central">${nums}</g>` +
+    `<line x1="100" y1="100" ${hand(hourDeg, 38)} stroke="#e03131" stroke-width="9" stroke-linecap="round"/>` +
+    `<line x1="100" y1="100" ${hand(minute * 6, 56)} stroke="#0984e3" stroke-width="5" stroke-linecap="round"/>` +
+    `<circle cx="100" cy="100" r="6" fill="#2c2a3d"/></svg>`;
+}
+function renderClocks(html) {
+  return html.replace(CLOCK_EMOJI, (ch) => {
+    const idx = ch.codePointAt(0) - 0x1F550;
+    return idx < 12 ? clockSVG(idx + 1, 0) : clockSVG(idx - 11, 30);
+  });
+}
 function mdBlock(text) {
   if (!text) return "";
-  return renderBlanks(marked.parse(markBlank(text)));
+  return renderClocks(renderBlanks(marked.parse(markBlank(text))));
 }
 function mdInline(text) {
   if (!text) return "";
-  return renderBlanks(marked.parseInline(markBlank(text)));
+  return renderClocks(renderBlanks(marked.parseInline(markBlank(text))));
 }
 
 /* ================= HOME PAGE ================= */
